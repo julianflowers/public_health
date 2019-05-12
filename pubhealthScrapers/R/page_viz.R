@@ -12,7 +12,8 @@
 #'
 #'
 #' @examples
-#'
+#' url <- "https://fingertips.phe.org.uk
+#' text <- get_page_text(url)
 #' page_viz(text, keyword = "fingertips", title = "Mentions of Fingertips in document")
 #'
 page_viz <- function(text, keyword, title = "Title"){

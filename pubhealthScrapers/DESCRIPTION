@@ -28,3 +28,4 @@ Imports:
     DT,
     textrank
 Suggests: knitr
+RoxygenNote: 6.1.1

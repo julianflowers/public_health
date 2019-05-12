@@ -1,0 +1,30 @@
+Package: pubhealthScrapers
+Title: Provides utilities for simple webscraping and extracting public health information form web sources
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Julian",
+           family = "Flowers",
+           role = c("aut", "cre"),
+           email = "julian.flowers12@gmail.com",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: What license it uses
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    glue,
+    dplyr,
+    tidytext,
+    quanteda,
+    ggplot2,
+    purrr,
+    rvest,
+    httr,
+    Rcrawler,
+    readtext,
+    pdftools,
+    ggpage,
+    tm,
+    DT,
+    textrank
+Suggests: knitr

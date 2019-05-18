@@ -1,0 +1,174 @@
+---
+title: "Local practice case studies from NICE"
+author: "Julian Flowers"
+date: "`r Sys.Date()`"
+output: 
+   rmarkdown::html_vignette:
+      fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = TRUE, 
+  warning = FALSE,
+  message = FALSE,
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(pacman)
+p_load(tidytext, tidyverse, pubhealthScrapers, quanteda)
+```
+
+```{r create-links-dataframe}
+
+url <- "https://www.nice.org.uk/localpractice/collection"
+pages <- 2:69
+
+urls <- paste0(url, "?page=", pages)
+urls1 <- c(url, urls)
+  
+links <- map(urls1, get_page_links)
+
+
+links_df <- links %>%
+  flatten() %>%
+  .[grepl("shared", .)] %>%
+  rbind(.) %>%
+  map_df(., data.frame) %>%
+  mutate(uri = "https://www.nice.org.uk", 
+         source = paste0(uri, .x..i..))
+
+```
+
+## Iteration
+
+```{r extract-page-text}
+
+links_df <- links_df %>%
+  mutate(links_text = map(source, get_page_text))
+
+links_df <- links_df %>%
+  unnest() %>%
+  group_by(source) %>%
+  mutate(nrow = n()) %>%
+  ungroup()
+
+links_df <- links_df %>%
+  group_by(source) %>%
+  mutate(links_text = paste0(links_text, collapse = " "),
+         links_text = tm::stripWhitespace(links_text)) %>% 
+  ungroup() %>%
+  distinct()
+
+```
+
+## Add metadata
+
+```{r extract-metadata-functions}
+
+# extract location
+location <- function(url){
+  
+  require(rvest)
+  require(purrr)
+  loc <- read_html(url) %>%
+    html_nodes(".span8") %>%
+    html_text()
+  
+  loc %>%
+    .[1] %>%
+    tm::stripWhitespace()
+  
+}
+
+# extract date
+date <- function(url){
+  
+  require(rvest)
+  require(purrr)
+  date <- read_html(url) %>%
+    html_nodes(".span8") %>%
+    html_text()
+  
+  date %>%
+    .[2] %>%
+    tm::stripWhitespace()
+  
+}
+
+# extract title
+title <- function(url){
+  
+  require(rvest)
+  require(purrr)
+  title <- read_html(url) %>%
+    html_nodes("#content-start") %>%
+    html_text()
+  
+  title %>%
+    tm::stripWhitespace()
+  
+}
+  
+# extract supplementary material
+# 
+sup_mat <- function(url){
+  
+  require(rvest)
+  require(purrr)
+  title <- read_html(url) %>%
+    html_nodes(".span12") %>%
+    html_attr("href")
+  
+  title %>%
+    tm::stripWhitespace()
+  
+}
+  
+  
+get_page_docs("https://www.nice.org.uk/sharedlearning/improving-the-care-of-head-and-neck-cancer-patients-with-collaborative-dietetics-and-speech-and-language-therapy-intervention")
+
+
+```
+
+```{r}
+
+safe_text <- safely(readtext::readtext)
+
+links_df_update <- links_df %>%
+  #slice(1:100) %>%
+  mutate(date = map(source, date), 
+         location = map(source, location), 
+         title = map(source, title))
+
+links_df_update <- links_df_update %>%
+  mutate(docs = map(source, get_page_docs))
+  
+
+link2 <- links_df_update %>%
+  unnest(date) %>%
+  unnest(docs) %>%
+  mutate(docs_url = paste0(uri, docs), 
+         docs_text = map(docs_url, safe_text))
+
+final_df <- link2 %>%
+  unnest() %>%
+  filter(!docs_text =="NULL") %>%
+  full_join(links_df_update, by = "source")
+
+final_df <- final_df %>%
+  select(title, date.x, location, source, links_text.x, docs_url, docs_text)
+
+final_df %>%
+  saveRDS("nice-case-studies.rds", compress = TRUE)
+
+head(final_df)
+
+```
+

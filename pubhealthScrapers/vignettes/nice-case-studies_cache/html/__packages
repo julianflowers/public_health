@@ -1,0 +1,17 @@
+base
+pacman
+tidytext
+tidyverse
+ggplot2
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+pubhealthScrapers
+quanteda
+httr
+xml2
+rvest

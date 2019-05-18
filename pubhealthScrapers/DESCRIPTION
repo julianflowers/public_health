@@ -1,5 +1,5 @@
 Package: pubhealthScrapers
-Title: Provides utilities for simple webscraping and extracting public health information form web sources
+Title: Provides utilities for simple webscraping and extracting public health information from online sources and APIs
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Julian",
@@ -26,6 +26,8 @@ Imports:
     ggpage,
     tm,
     DT,
-    textrank
-Suggests: knitr
+    textrank, 
+    hansard
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
 RoxygenNote: 6.1.1

@@ -1,0 +1,58 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+here::here()
+case_studies <- read_rds("vignettes/nice-case-studies.rds")
+
+glimpse(case_studies)
+
+
+```
+
+```{r fig.height= 4, fig.width= 4}
+
+case_studies %>%
+  as.tibble() %>%
+  select(title, links_text.x) %>%
+  unnest() %>%
+  create_bigrams(., links_text.x) %>%
+  count(bigram, sort = TRUE) %>%
+  filter(!bigram %in% c("NA NA", "nice guidance", "rights reserved", "reserved subject", "objectives reasons",
+                        "key learning", "key findings", "findings key", "project key")) %>%
+  with(., wordcloud::wordcloud(bigram, n, colors = viridis::viridis(n = 5, direction = -1), min.freq = 20, rot.per = .4, scale = c(2, 0.2)))
+
+```
+
+## Public health studies
+
+```{r}
+
+phc <- case_studies %>%
+  as.tibble() %>%
+  select(location, date.x, title, links_text.x) %>%
+  unnest() %>%
+  mutate(ph = str_detect(links_text.x, "public health|oral health|healthy homes|health promotion|sexual health|primary care|local authority")) %>%
+  filter(ph == TRUE) %>%
+  distinct()
+
+```
+
+```{r}
+
+library(stm)
+
+phc_corp <- corpus(phc, text_field = "links_text.x")
+
+phc_dfm <- dfm(phc_corp, remove = stopwords("en"), remove_punct = TRUE)
+
+phc_dfm_topics <- convert(phc_dfm, to = "stm")
+
+phc_dfm_topics <- stm(phc_dfm_topics$documents, phc_dfm_topics$vocab, data = phc_dfm_topics$meta, init.type = "Spectral", max.em.its = 50, seed = 1234, K = 10 )
+
+stm::labelTopics(phc_dfm_topics)
+
+```
+

@@ -7,11 +7,16 @@
 #' @param text The text variable to be processed
 #'
 #' @return A dataframe of bigrams
-#' 
 #'
-#' @examples 
-#' create_bigrams(df, text)
-#' 
+#'
+#' @examples
+#' url <- "https://fingertips.phe.org.uk/documents/PHDS%20Guidance%20-%20Funnel%20Plots.pdf"
+#' doc <- readtext(url)
+#' head(create_bigrams(doc, text))
+#'
+#
+#'
+#'
 create_bigrams <- function(df, text){
   require(tidytext)
   require(dplyr)
